@@ -41,6 +41,10 @@ while not finished:
     clock.tick(FPS)
     t += 1
     for i in range(number_of_balls):
+        if balls[i].x >= 1200 - balls[i].r or balls[i].x <= balls[i].r:
+            balls[i].vx = -balls[i].vx
+        elif balls[i].y >= 900 - balls[i].r or balls[i].y <= balls[i].r:
+            balls[i].vy = -balls[i].vy
         balls[i].x = balls[i].x + balls[i].vx
         balls[i].y = balls[i].y + balls[i].vy
         balls[i].draw()
