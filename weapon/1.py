@@ -46,13 +46,12 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        # FIXME
-        self.vy += 2
+        self.vy += 1
         if self.x >= 800 - self.r or self.x <= self.r:
             self.vx = (-1) * self.vx
         if self.y >= 600 - self.r or self.y <= self.r:
             self.vy = (-1) * self.vy
-        self.vy += 2
+        self.vy += 1
         self.x += self.vx
         self.y += self.vy
 
@@ -72,8 +71,7 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        # FIXME
-        if (obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (self.r + obj.r) ** 2:
+        if (obj.x - self.x) ** 2 + (obj.y - self.y) ** 2 <= (self.r + obj.r) ** 2 + 1000:
             return True
         else:
             return False
@@ -99,10 +97,10 @@ class Gun:
         global balls, bullet
         bullet += 1
         new_ball = Ball(self.screen)
-        new_ball.r += 5
+        new_ball.r += 5 * bullet
         self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
-        new_ball.vy = - self.f2_power * math.sin(self.an)
+        new_ball.vy = self.f2_power * math.sin(self.an)
         balls.append(new_ball)
         self.f2_on = 0
         self.f2_power = 10
@@ -110,7 +108,10 @@ class Gun:
     def targetting(self, event):
         """Прицеливание. Зависит от положения мыши."""
         if event:
-            self.an = math.atan((event.pos[1]-450) / (event.pos[0]-20))
+            try:
+                self.an = math.atan((event.pos[1]-450) / (event.pos[0]-20))
+            except:
+                self.an = 90
         if self.f2_on:
             self.color = RED
         else:
@@ -126,24 +127,20 @@ class Gun:
         pygame.draw.line(
             self.screen,
             BLACK,
-            (20, 450), (event.pos[0], event.pos[1]), 50
+            (20, 450), (event.pos[0], event.pos[1]), 2
         )
         print(event.pos[0], event.pos[1])
 
     def power_up(self):
         if self.f2_on:
             if self.f2_power < 100:
-                self.f2_power += 1
+                self.f2_power += 5
             self.color = RED
         else:
             self.color = GREY
 
 
 class Target:
-    # self.points = 0
-    # self.live = 1
-    # FIXME: don't work!!! How to call this functions when object is created?
-    # self.new_target()
 
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
@@ -159,6 +156,7 @@ class Target:
         self.x = randint(600, 780)
         self.y = randint(300, 550)
         self.r = randint(50, 70)
+        self.live = 1
         self.color = RED
     def hit(self, points=1):
         """Попадание шарика в цель."""
@@ -171,6 +169,32 @@ class Target:
             (int(self.x), int(self.y)),
             int(self.r)
         )
+
+class Bomb:
+
+    def __init__(self, screen: pygame.Surface):
+        self.screen = screen
+        self.x = 400
+        self.y = 0
+        self.v = 0
+        self.r = randint(20, 50)
+
+    def move(self):
+        self.v += 1
+        self.y += self.v
+
+    def new_bomb(self):
+        self.x = 400
+        self.y = 0
+        self.v = 0
+        self.side = randint(20, 50)
+
+    def draw(self):
+        pygame.draw.rect(
+            self.screen,
+            BLACK,
+            (self.x - 0.5 * self.r, self.y - 0.5 * self.r, self.r, self.r)
+        )
         
 
 
@@ -182,17 +206,29 @@ balls = []
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = Target(screen)
+bomb = Bomb(screen)
 finished = False
 
 while not finished:
+    clock.tick(FPS)
+
     screen.fill(WHITE)
     gun.draw()
     target.draw()
+    bomb.draw()
+    bomb.move()
+    if bomb.y >= 580:
+        bomb.new_bomb()
     for b in balls:
         b.draw()
-    pygame.display.update()
-
-    clock.tick(FPS)
+    for b in balls:
+        b.move()
+        if b.hittest(target) and target.live:
+            target.live = 0
+            target.hit()
+            target.new_target()
+        if b.hittest(bomb):
+            balls.remove(b)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
@@ -202,15 +238,9 @@ while not finished:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
-            pygame.display.update()
             gun.draw_targetting(event)
 
-    for b in balls:
-        b.move()
-        if b.hittest(target) and target.live:
-            target.live = 0
-            target.hit()
-            target.new_target()
+    pygame.display.update()
     gun.power_up()
 
 pygame.quit()

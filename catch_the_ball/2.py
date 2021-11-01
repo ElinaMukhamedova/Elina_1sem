@@ -158,8 +158,8 @@ while not finished:
     pygame.display.update()
     screen.fill(BLACK)
 
-print('red balls = ', k_red_balls, 'poinjts for red balls = ', k_red_balls * points_for_red_balls)
-print('random balls = ', k_balls, 'poinjts for random balls = ', k_balls * points_for_balls)
-print('cubes = ', k_cubes, 'poinjts for cubes = ', k_cubes * points_for_cubes)
+print('red balls = ', k_red_balls, 'points for red balls = ', k_red_balls * points_for_red_balls)
+print('random balls = ', k_balls, 'points for random balls = ', k_balls * points_for_balls)
+print('cubes = ', k_cubes, 'points for cubes = ', k_cubes * points_for_cubes)
 
 pygame.quit()
