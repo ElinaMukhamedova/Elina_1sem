@@ -67,9 +67,21 @@ points_for_cubes = 3
 
 data = {}
 
-while not finished:
-    clock.tick(FPS)
+with open(r"rank.json") as f:
+    data = json.load(f)
 
+number_of_participants = len(data)
+names = [""] * number_of_participants
+i = 0
+for key in data:
+    names[i] = key
+    i += 1
+time_limit = 50
+timer = 0
+
+while not finished and timer <= time_limit * number_of_participants:
+    clock.tick(FPS)
+    timer += 1
     distsq = {}
     for i in range(number_of_red_balls):
         for j in range(number_of_red_balls):
@@ -158,8 +170,13 @@ while not finished:
     pygame.display.update()
     screen.fill(BLACK)
 
-print('red balls = ', k_red_balls, 'points for red balls = ', k_red_balls * points_for_red_balls)
-print('random balls = ', k_balls, 'points for random balls = ', k_balls * points_for_balls)
-print('cubes = ', k_cubes, 'points for cubes = ', k_cubes * points_for_cubes)
+    if timer % time_limit == 0:
+        k_participant = timer // time_limit
+        data[names[k_participant - 1]] = k_red_balls * points_for_red_balls + k_balls * points_for_balls + k_cubes * points_for_cubes
+        print('red balls = ', k_red_balls, 'points for red balls = ', k_red_balls * points_for_red_balls)
+        print('random balls = ', k_balls, 'points for random balls = ', k_balls * points_for_balls)
+        print('cubes = ', k_cubes, 'points for cubes = ', k_cubes * points_for_cubes)
 
+with open(r"rank.json", 'w') as f:
+    json.dump(data, f)
 pygame.quit()
